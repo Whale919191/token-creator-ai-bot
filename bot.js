@@ -22,7 +22,10 @@ bot.setWebHook(`${BASE_URL}/bot${TOKEN}`, {
   }
 });
 // Webhook Express
-app.use(express.json());
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
 app.post(`/bot${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
