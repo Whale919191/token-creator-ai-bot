@@ -21,8 +21,15 @@ if (!token || !baseUrl) {
 
 const bot = new TelegramBot(token, { webHook: true });
 
+// ✅ Webhook + comandi visibili
 bot.setWebHook(WEBHOOK_URL).then(() => {
   console.log(`✅ Webhook impostato su: ${WEBHOOK_URL}`);
+
+  // ✅ Comandi suggeriti quando si scrive "/"
+  bot.setMyCommands([
+    { command: 'start', description: 'Avvia il bot' },
+    { command: 'create', description: 'Genera un nuovo token AI' }
+  ]);
 }).catch((err) => {
   console.error('❌ Errore nel setWebhook:', err);
 });
@@ -30,18 +37,6 @@ bot.setWebHook(WEBHOOK_URL).then(() => {
 app.post(WEBHOOK_PATH, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
-});
-// ✅ Webhook impostato
-bot.setWebHook(WEBHOOK_URL).then(() => {
-  console.log(`✅ Webhook impostato su: ${WEBHOOK_URL}`);
-
-  // ✅ Imposta i comandi visibili quando l'utente scrive "/"
-  bot.setMyCommands([
-    { command: 'start', description: 'Avvia il bot' },
-    { command: 'create', description: 'Genera un nuovo token AI' }
-  ]);
-}).catch((err) => {
-  console.error('❌ Errore nel setWebhook:', err);
 });
 
 // 🔥 Funzioni utili per generazione nome/ticker
@@ -83,7 +78,7 @@ function modifyTicker(original) {
   return ticker.slice(0, 5); // max 5 caratteri
 }
 
-// 🔥 Funzione principale: prende trending da CoinGecko e li modifica
+// 🔥 Funzione principale: trending + modifica
 async function getTrendingToken() {
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/search/trending');
@@ -136,7 +131,7 @@ bot.onText(/\/create/, async (msg) => {
   });
 });
 
-// 🧠 Gestione callback query
+// 🧠 Callback query
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const messageId = query.message.message_id;
