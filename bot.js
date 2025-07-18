@@ -32,13 +32,8 @@ app.post(WEBHOOK_PATH, (req, res) => {
   res.sendStatus(200);
 });
 
-// 🔥 Funzione per nome/ticker trending da CoinGecko
-async function getTrendingToken() {
-  try {
-    const res = await fetch('https://api.coingecko.com/api/v3/search/trending');
-    const json = await res.json();
-    if (!json.coins || json.coins.length === 0) return null;
-    function getRandomElement(array) {
+// 🔥 Funzioni utili per generazione nome/ticker
+function getRandomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
@@ -73,27 +68,10 @@ function modifyTicker(original) {
     ticker += Math.floor(Math.random() * 10);
   }
 
-  return ticker.slice(0, 5); // massimo 5 caratteri
+  return ticker.slice(0, 5); // max 5 caratteri
 }
 
-    const random = json.coins[Math.floor(Math.random() * json.coins.length)];
-    function modifyName(original) {
-  const suffixes = ['X', 'INU', 'FLOKI', '420', 'AI', 'PUMP', 'MOON'];
-  const prefix = ['SUPER', 'MEGA', 'ULTRA', 'HYPER', 'DOGE', 'BABY', 'SHIBA'];
-  const useSuffix = Math.random() < 0.5;
-  return useSuffix
-    ? original + suffixes[Math.floor(Math.random() * suffixes.length)]
-    : prefix[Math.floor(Math.random() * prefix.length)] + original;
-}
-
-function modifyTicker(ticker) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let randomChar = chars[Math.floor(Math.random() * chars.length)];
-  let newTicker = ticker.slice(0, 3).toUpperCase() + randomChar;
-  if (newTicker.length > 4) newTicker = newTicker.slice(0, 4);
-  return newTicker;
-}
-
+// 🔥 Funzione principale: prende trending da CoinGecko e li modifica
 async function getTrendingToken() {
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/search/trending');
@@ -169,23 +147,23 @@ bot.on('callback_query', async (query) => {
     };
 
     try {
-  await bot.editMessageMedia({
-    type: 'photo',
-    media: logo
-  }, {
-    chat_id: chatId,
-    message_id: messageId
-  });
+      await bot.editMessageMedia({
+        type: 'photo',
+        media: logo
+      }, {
+        chat_id: chatId,
+        message_id: messageId
+      });
 
-  await bot.editMessageCaption(caption, {
-    chat_id: chatId,
-    message_id: messageId,
-    parse_mode: 'HTML',
-    reply_markup: keyboard
-  });
-} catch (err) {
-  console.error("❌ Errore nel cambio media o caption:", err.message);
-}
+      await bot.editMessageCaption(caption, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
+    } catch (err) {
+      console.error("❌ Errore nel cambio media o caption:", err.message);
+    }
   } else if (query.data.startsWith('confirm|')) {
     const [_, name, ticker] = query.data.split('|');
 
@@ -199,7 +177,6 @@ bot.on('callback_query', async (query) => {
     // 👉 Qui in futuro: avvia deploy automatico
   }
 
-  // Rimuove spinner di caricamento
   bot.answerCallbackQuery(query.id);
 });
 
