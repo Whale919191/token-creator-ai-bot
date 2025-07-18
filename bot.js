@@ -1,5 +1,17 @@
 require('dotenv').config();
 const express = require('express');
+const app = express();
+
+// Web server richiesto da Render per tenere vivo il bot
+app.get("/", (req, res) => {
+  res.send("🤖 Bot attivo!");
+});
+
+// Ascolta sulla porta 3000 o quella fornita da Render
+app.listen(process.env.PORT || 3000, () => {
+  console.log("🌐 Web service attivo su porta 3000");
+});
+const express = require('express');
 const { Telegraf } = require('telegraf');
 
 const app = express();
