@@ -55,6 +55,9 @@ app.get("/", (req, res) => {
   res.send("Bot attivo!");
 });
 
-app.listen(process.env.PORT || 3000, () => {
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🌐 Web service attivo sulla porta ${PORT}`);
+});
   console.log("🌐 Web service attivo sulla porta 3000!");
 });
