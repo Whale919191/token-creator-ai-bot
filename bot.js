@@ -11,13 +11,15 @@ const BASE_URL = process.env.BASE_URL;
 // ✅ Istanzia il bot
 const bot = new TelegramBot(TOKEN);
 
+// ✅ Imposta il webhook
 (async () => {
   try {
-    await bot.deleteWebHook(); // 💣 Elimina vecchio webhook
-    const success = await bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`);
-    console.log("✅ Webhook impostato:", success);
+    await bot.deleteWebHook(); // rimuove webhook vecchi
+    const url = `${BASE_URL}/webhook/${TOKEN}`;
+    const success = await bot.setWebHook(url);
+    console.log('✅ Webhook impostato:', success);
   } catch (err) {
-    console.error("❌ Errore nel setWebhook:", err);
+    console.error('❌ Errore nel setWebhook:', err);
   }
 })();
 
