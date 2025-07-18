@@ -2,15 +2,22 @@ import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 
 const app = express();
+
+// ✅ Variabili d'ambiente
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.BOT_TOKEN;
-const BASE_URL = process.env.BASE_URL;
+const BASE_URL = process.env.BASE_URL; // <-- corretto nome
 
+// ✅ Istanzia il bot
 const bot = new TelegramBot(TOKEN);
+
+// ✅ Imposta il webhook
 bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`);
 
+// ✅ Middleware per JSON
 app.use(express.json());
 
+// ✅ Endpoint per ricevere gli update da Telegram
 app.post(`/webhook/${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
@@ -21,7 +28,7 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, '👋 Benvenuto su Token Creator AI!');
 });
 
-// ✅ Avvia Express e imposta il webhook
+// ✅ Avvia il server Express
 app.listen(PORT, () => {
   console.log(`🚀 Server Express attivo sulla porta ${PORT}`);
 });
