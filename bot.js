@@ -1,11 +1,12 @@
-import 'dotenv/config';
+import express from 'express';
+import TelegramBot from 'node-telegram-bot-api';
 import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const TOKEN = process.env.TELEGRAM_TOKEN;
-const BASE_URL = process.env.BASE_URL;
+const TOKEN = process.env.BOT_TOKEN;
+const BASEora _URL = process.env.BASE_URL;
 
 const bot = new TelegramBot(TOKEN);
 bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`);
