@@ -24,6 +24,7 @@ try {
   } else {
     console.error('❌ Errore generico:', error);
   }
+} // <== GRAFFA CHIUSA QUI
 
 // ✅ Endpoint corretto
 app.post(`/webhook/${TOKEN}`, (req, res) => {
