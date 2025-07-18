@@ -40,6 +40,33 @@ bot.onText(/\/start/, (msg) => {
   console.log(`📩 Ricevuto /start da ${msg.chat.id}`);
   bot.sendMessage(msg.chat.id, '✅ Bot attivo e funzionante!');
 });
+import crypto from 'crypto';
+
+// Funzione per generare nome e ticker random
+function generaNomeETicker() {
+  const nomi = ['Shiba', 'Pepe', 'Zilla', 'Doge', 'Turbo', 'Fomo', 'Moon', 'Inu', 'Floki', 'Meme'];
+  const suffissi = ['Coin', 'Swap', 'AI', 'Bot', 'Chain', 'Fi', 'Dex', 'Pump', 'Launch', 'Token'];
+
+  const nome = nomi[Math.floor(Math.random() * nomi.length)] + suffissi[Math.floor(Math.random() * suffissi.length)];
+  const ticker = crypto.randomBytes(2).toString('hex').toUpperCase(); // es: 3A4F → Ticker casuale
+
+  return { nome, ticker };
+}
+
+bot.onText(/\/create/, async (msg) => {
+  const chatId = msg.chat.id;
+
+  // Genera nome e ticker
+  const { nome, ticker } = generaNomeETicker();
+
+  // Genera URL logo da RoboHash
+  const logoUrl = `https://robohash.org/${nome}.png`;
+
+  // Messaggio con anteprima
+  const message = `🪙 *Nome:* ${nome}\n🔤 *Ticker:* ${ticker}\n🖼️ *Logo generato:*\n${logoUrl}`;
+
+  await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+});
 
 // Avvia Express
 app.listen(PORT, () => {
