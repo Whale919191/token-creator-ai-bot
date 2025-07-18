@@ -5,8 +5,8 @@ const app = express();
 
 // ✅ Variabili d'ambiente
 const PORT = process.env.PORT || 3000;
-const TOKEN = process.env.BOT_TOKEN;
-const BASE_URL = process.env.BASE_URL; // <-- corretto nome
+const TOKEN = process.env.TELEGRAM_TOKEN;
+const BASE_URL = process.env.BASE_URL;
 
 // ✅ Istanzia il bot
 const bot = new TelegramBot(TOKEN);
