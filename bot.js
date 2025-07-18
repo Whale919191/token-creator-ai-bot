@@ -1,18 +1,23 @@
-const express = require('express');
-const TelegramBot = require('node-telegram-bot-api');
+// 📦 Importa le librerie
+import express from 'express';
+import TelegramBot from 'node-telegram-bot-api';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const app = express();
-app.use(express.json());
-
-// ✅ Variabili d'ambiente
-const TOKEN = process.env.BOT_TOKEN;
+// 🔐 Variabili ambiente
+const TOKEN = process.env.TELEGRAM_TOKEN;
 const BASE_URL = process.env.BASE_URL;
 const PORT = process.env.PORT || 3000;
 
-// ✅ Inizializza il bot senza polling
-const bot = new TelegramBot(TOKEN, { webHook: true });
+// 🤖 Inizializza il bot in modalità webhook
+const bot = new TelegramBot(TOKEN);
+bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`);
 
-// ✅ Endpoint webhook
+// 🚀 Crea server Express
+const app = express();
+app.use(express.json());
+
+// 🌐 Endpoint per ricevere aggiornamenti da Telegram
 app.post(`/webhook/${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
@@ -23,19 +28,20 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, '👋 Benvenuto su Token Creator AI!');
 });
 
-// ✅ Avvia Express e poi imposta il webhook
-
-
-  app.listen(PORT, () => {
+// 🚀 Avvia Express e imposta il webhook dopo 2s
+app.listen(PORT, async () => {
   console.log(`🚀 Server Express attivo sulla porta ${PORT}`);
 
-  // ⏳ Attende 2 secondi prima di impostare il webhook
   setTimeout(async () => {
     try {
-      await bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`, {
+      const webhookUrl = `${BASE_URL}/webhook/${TOKEN}`;
+      console.log('🌐 Imposto webhook su URL:', webhookUrl);
+
+      await bot.setWebHook(webhookUrl, {
         allowed_updates: ['message'],
-        drop_pending_updates: true
+        drop_pending_updates: true,
       });
+
       console.log('✅ Webhook impostato correttamente!');
     } catch (error) {
       if (error.response && error.response.body) {
@@ -44,5 +50,5 @@ bot.onText(/\/start/, (msg) => {
         console.error('❌ Errore generico:', error);
       }
     }
-  }, 2000); // ⏱️ Attesa di 2 secondi
+  }, 2000);
 });
