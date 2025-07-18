@@ -11,7 +11,7 @@ app.use(express.json());
 const token = process.env.TELEGRAM_TOKEN;
 const baseUrl = process.env.BASE_URL;
 const PORT = process.env.PORT || 3000;
-const WEBHOOK_PATH = "/webhook";
+const WEBHOOK_PATH = `/bot${token}`;
 const WEBHOOK_URL = `${baseUrl.trim()}${WEBHOOK_PATH}`;
 
 if (!token || !baseUrl) {
