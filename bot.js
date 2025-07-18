@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 // ✅ Inizializza il bot senza polling
 const bot = new TelegramBot(TOKEN);
 
-// try {
+try {
   bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`, {
     allowed_updates: ['message'],
     drop_pending_updates: true
