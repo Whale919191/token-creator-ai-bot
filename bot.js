@@ -1,56 +1,49 @@
-const express = require("express");
-const TelegramBot = require("node-telegram-bot-api");
-const axios = require("axios");
+require('dotenv').config();
+const express = require('express');
+const { Telegraf } = require('telegraf');
 
-// === CONFIGURA QUI ===
-const TOKEN = process.env.BOT_TOKEN; // Token del bot Telegram
-const URL = process.env.BASE_URL; // Es: https://token-creator-ai-bot.onrender.com
-
-// === CREA BOT CON WEBHOOK ===
-const bot = new TelegramBot(TOKEN, { webHook: { port: 3000 } });
 const app = express();
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// === WEBHOOK PATH ===
-const webhookPath = `/bot${TOKEN}`;
-
-// === AVVIA WEBHOOK ===
-bot.setWebHook(`${URL}${webhookPath}`);
-
-// === MIDDLEWARE TELEGRAM ===
-app.use(express.json());
-app.post(webhookPath, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
+// Risposta al comando /start
+bot.start((ctx) => {
+  ctx.reply('👋 Benvenuto su Token Creator AI!');
 });
 
-// === COMANDO /start ===
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, "👋 Ciao! Inviami un'idea o descrizione e ti genererò un token con nome, ticker e logo!");
-});
+// Risponde a qualsiasi messaggio testuale
+bot.on('text', async (ctx) => {
+  const idea = ctx.message.text;
 
-// === COMANDO /genera ===
-bot.onText(/\/genera (.+)/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const idea = match[1];
+  // Genera nome e ticker fake
+  const fakeName = idea.split(' ')[0].toUpperCase() + ' Coin';
+  const fakeTicker = idea
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .substring(0, 4)
+    .toUpperCase();
 
-  // Genera nome e ticker da prompt (semplificato qui)
-  const name = idea.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 12);
-  const tokenName = name.charAt(0).toUpperCase() + name.slice(1) + "AI";
-  const ticker = name.toUpperCase().slice(0, 4) || "AIBT";
+  await ctx.reply(`💡 Nome token: *${fakeName}*\n🔤 Ticker: *${fakeTicker}*`, { parse_mode: "Markdown" });
 
-  bot.sendMessage(chatId, `🧠 Nome: ${tokenName}\n🔤 Ticker: ${ticker}\n🎨 Sto generando il logo...`);
+  const logoUrl = `https://robohash.org/${encodeURIComponent(idea)}.png?set=set3`;
 
-  // Genera logo con Robohash
-  const logoUrl = `https://robohash.org/${encodeURIComponent(tokenName)}.png?set=set1`;
-
-  await bot.sendPhoto(chatId, logoUrl, {
-    caption: `✅ Ecco il logo per *${tokenName}* (${ticker})`,
-    parse_mode: "Markdown",
+  await ctx.replyWithPhoto({ url: logoUrl }, {
+    caption: `🧪 Logo generato per: *${idea}*`,
+    parse_mode: "Markdown"
   });
 });
 
-// === AVVIA EXPRESS SERVER ===
-app.get("/", (req, res) => res.send("🤖 Bot attivo con Webhook"));
-app.listen(3000, () => {
-  console.log("Server Express in ascolto sulla porta 3000");
+// Endpoint di salute per Render
+app.get("/", (req, res) => {
+  res.send("✅ Bot attivo!");
+});
+
+// Avvia il bot
+bot.launch();
+console.log("🤖 Bot attivato!");
+
+// Web server necessario per Render (Webhook)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🌐 Web service attivo sulla porta ${PORT}`);
 });
