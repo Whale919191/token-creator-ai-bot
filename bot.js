@@ -38,6 +38,43 @@ async function getTrendingToken() {
     const res = await fetch('https://api.coingecko.com/api/v3/search/trending');
     const json = await res.json();
     if (!json.coins || json.coins.length === 0) return null;
+    function getRandomElement(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function maybeAddNumber(str) {
+  const numbers = ['420', '69', '9000', '1337'];
+  return Math.random() < 0.4 ? str + getRandomElement(numbers) : str;
+}
+
+function modifyName(original) {
+  const suffixes = ['X', 'INU', 'FLOKI', 'AI', 'PUMP', 'MOON'];
+  const prefixes = ['SUPER', 'MEGA', 'ULTRA', 'HYPER', 'DOGE', 'BABY', 'SHIBA'];
+
+  let name = original.replace(/\s+/g, '');
+
+  if (Math.random() < 0.5) {
+    name = getRandomElement(prefixes) + name;
+  }
+
+  if (Math.random() < 0.5) {
+    name = name + getRandomElement(suffixes);
+  }
+
+  return maybeAddNumber(name);
+}
+
+function modifyTicker(original) {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let ticker = original.slice(0, 3).toUpperCase();
+  ticker += letters[Math.floor(Math.random() * letters.length)];
+
+  if (Math.random() < 0.3) {
+    ticker += Math.floor(Math.random() * 10);
+  }
+
+  return ticker.slice(0, 5); // massimo 5 caratteri
+}
 
     const random = json.coins[Math.floor(Math.random() * json.coins.length)];
     function modifyName(original) {
@@ -64,18 +101,13 @@ async function getTrendingToken() {
     if (!json.coins || json.coins.length === 0) return null;
 
     const random = json.coins[Math.floor(Math.random() * json.coins.length)];
-    const originalName = random.item.name.replace(/\s+/g, '');
-    const originalTicker = random.item.symbol.toUpperCase();
+    const originalName = random.item.name;
+    const originalTicker = random.item.symbol;
 
     const name = modifyName(originalName);
     const ticker = modifyTicker(originalTicker);
 
     return { name, ticker };
-  } catch (err) {
-    console.error('❌ Errore fetch trending:', err);
-    return null;
-  }
-}
   } catch (err) {
     console.error('❌ Errore fetch trending:', err);
     return null;
