@@ -29,3 +29,15 @@ app.get("/", (req, res) => {
 app.listen(process.env.PORT || 3000, () => {
   console.log("🌐 Web service attivo sulla porta 3000");
 });
+bot.on('text', async (ctx) => {
+  const idea = ctx.message.text;
+
+  // Costruiamo un prompt per generare un logo
+  const prompt = `logo crypto meme per: ${idea}`;
+
+  // Finta immagine generata (prossimo step: AI vera)
+  const fakeImageUrl = `https://api.dicebear.com/8.x/bottts/png?seed=${encodeURIComponent(idea)}`;
+
+  await ctx.reply(`💡 Bella idea: *${idea}*\nSto generando il logo...`, { parse_mode: 'Markdown' });
+  await ctx.replyWithPhoto({ url: fakeImageUrl }, { caption: `Ecco il logo generato per *${idea}*`, parse_mode: 'Markdown' });
+});
