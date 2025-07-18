@@ -31,6 +31,18 @@ app.post(WEBHOOK_PATH, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
+// ✅ Webhook impostato
+bot.setWebHook(WEBHOOK_URL).then(() => {
+  console.log(`✅ Webhook impostato su: ${WEBHOOK_URL}`);
+
+  // ✅ Imposta i comandi visibili quando l'utente scrive "/"
+  bot.setMyCommands([
+    { command: 'start', description: 'Avvia il bot' },
+    { command: 'create', description: 'Genera un nuovo token AI' }
+  ]);
+}).catch((err) => {
+  console.error('❌ Errore nel setWebhook:', err);
+});
 
 // 🔥 Funzioni utili per generazione nome/ticker
 function getRandomElement(array) {
