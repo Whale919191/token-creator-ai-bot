@@ -1,40 +1,34 @@
-import express from "express";
-import TelegramBot from "node-telegram-bot-api";
-import dotenv from "dotenv";
-import axios from "axios";
+import express from 'express';
+import TelegramBot from 'node-telegram-bot-api';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BASE_URL = process.env.BASE_URL;
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server avviato sulla porta ${PORT}`);
-});
-
-const bot = new TelegramBot(TOKEN, { webHook: { port: PORT } });
-
-// Imposta il webhook
-const webhookURL = `${BASE_URL}/bot${TOKEN}`;
-bot.setWebHook(webhookURL).then(() => {
-  console.log("✅ Webhook impostato su:", webhookURL);
-});
-
-// Express per ricevere i messaggi da Telegram
 app.use(express.json());
-app.post(`/bot${TOKEN}`, (req, res) => {
+
+const token = process.env.TELEGRAM_TOKEN;
+const baseUrl = process.env.BASE_URL;
+const bot = new TelegramBot(token, { webHook: { port: false } });
+
+const PORT = process.env.PORT || 3000;
+const WEBHOOK_URL = `${baseUrl}/bot${token}`;
+
+// Imposta webhook
+bot.setWebHook(WEBHOOK_URL);
+
+// Endpoint per ricevere aggiornamenti Telegram
+app.post(`/bot${token}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
 
-// Log porta
-app.listen(PORT, () => {
-  console.log(`🚀 Server avviato sulla porta ${PORT}`);
+// Comando /start
+bot.onText(/\/start/, (msg) => {
+  bot.sendMessage(msg.chat.id, '✅ Bot attivo e funzionante!');
 });
 
-// Risposta al comando /start
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Ciao! Sono Token Creator AI. 🚀");
+// Avvia server Express
+app.listen(PORT, () => {
+  console.log(`🚀 Server avviato sulla porta ${PORT}`);
 });
