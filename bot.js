@@ -11,8 +11,15 @@ const BASE_URL = process.env.BASE_URL;
 // ✅ Istanzia il bot
 const bot = new TelegramBot(TOKEN);
 
-// ✅ Imposta il webhook
-bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`);
+(async () => {
+  try {
+    await bot.deleteWebHook(); // 💣 Elimina vecchio webhook
+    const success = await bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`);
+    console.log("✅ Webhook impostato:", success);
+  } catch (err) {
+    console.error("❌ Errore nel setWebhook:", err);
+  }
+})();
 
 // ✅ Middleware per JSON
 app.use(express.json());
