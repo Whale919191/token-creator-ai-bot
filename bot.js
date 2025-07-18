@@ -5,36 +5,51 @@ const { Telegraf } = require('telegraf');
 const app = express();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+// Funzione per generare un nome token casuale
+function generaNomeToken() {
+  const aggettivi = ['Meme', 'Crypto', 'Degen', 'Magic', 'Rocket', 'Incredible', 'Super', 'Meta'];
+  const animali = ['Cat', 'Dog', 'Frog', 'Pepe', 'Monkey', 'Banana', 'Shark', 'Tiger'];
+  const randomA = aggettivi[Math.floor(Math.random() * aggettivi.length)];
+  const randomB = animali[Math.floor(Math.random() * animali.length)];
+  return `${randomA} ${randomB}`;
+}
+
+// Funzione per generare un ticker tipo "MCT"
+function generaTicker(nome) {
+  return nome
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 4); // max 4 lettere
+}
+
 // Comando /start
 bot.start((ctx) => {
-  ctx.reply('👋 Benvenuto su Token Creator AI!\nMandami un’idea per generare un logo.');
+  ctx.reply('👋 Benvenuto su Token Creator AI!\nScrivimi un’idea o premi /genera per creare un token!');
 });
 
-// Quando riceve un messaggio testuale
-bot.on('text', async (ctx) => {
-  const idea = ctx.message.text;
+// Comando personalizzato /genera
+bot.command('genera', async (ctx) => {
+  const nome = generaNomeToken();
+  const ticker = generaTicker(nome);
+  const logoURL = `https://robohash.org/${encodeURIComponent(nome)}.png?set=set3`;
 
-  await ctx.reply(`💡 Sto creando un logo per: *${idea}*`, { parse_mode: "Markdown" });
-
-  // Genera logo gratuito con RoboHash
-  const imageUrl = `https://robohash.org/${encodeURIComponent(idea)}.png?set=set3`;
-
-  await ctx.replyWithPhoto({ url: imageUrl }, {
-    caption: `🧪 Ecco un logo generato gratuitamente per: *${idea}*`,
-    parse_mode: "Markdown"
-  });
+  await ctx.reply(`✨ *Nome Token:* ${nome}\n🔠 *Ticker:* ${ticker}`);
+  await ctx.replyWithPhoto({ url: logoURL }, { caption: `🧪 Logo generato per *${nome}*` });
 });
 
-// Webhook base per Render
+// Webhook per Render
 app.get("/", (req, res) => {
   res.send("✅ Bot attivo!");
 });
 
-// Avvio del bot
+// Avvio bot
 bot.launch();
 console.log("🤖 Bot attivato!");
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🌐 Web server avviato sulla porta ${PORT}`);
+  console.log(`🌐 Web service attivo sulla porta ${PORT}`);
+});PORT}`);
 });
