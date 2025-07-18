@@ -9,7 +9,10 @@ const PORT = process.env.PORT || 3000;
 
 // Inizializza il bot senza server integrato
 const bot = new TelegramBot(TOKEN);
-bot.setWebHook(`${BASE_URL}/bot${TOKEN}`)
+bot.setWebHook(`${BASE_URL}/bot${TOKEN}`, {
+  allowed_updates: ["message"],
+  drop_pending_updates: true
+})
   .then(() => console.log('✅ Webhook impostato correttamente!'))
 .catch((error) => {
   if (error.response && error.response.body) {
