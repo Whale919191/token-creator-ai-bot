@@ -24,7 +24,6 @@ const bot = new TelegramBot(TOKEN);
   } else {
     console.error('❌ Errore generico:', error);
   }
-}
 
 // ✅ Endpoint corretto
 app.post(`/webhook/${TOKEN}`, (req, res) => {
