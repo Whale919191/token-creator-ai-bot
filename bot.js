@@ -12,11 +12,11 @@ const PORT = process.env.PORT || 3000;
 // ✅ Inizializza il bot senza polling
 const bot = new TelegramBot(TOKEN);
 
-// ✅ Imposta il webhook su Render
-bot.setWebHook(`${BASE_URL}/bot${TOKEN}`, {
+// ✅ Webhook corretto
+bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`, {
   allowed_updates: ['message'],
   drop_pending_updates: true
-})
+});
   .then(() => console.log('✅ Webhook impostato correttamente!'))
   .catch((error) => {
     if (error.response && error.response.body) {
@@ -26,10 +26,11 @@ bot.setWebHook(`${BASE_URL}/bot${TOKEN}`, {
     }
   });
 
-// ✅ Endpoint per ricevere gli aggiornamenti dal webhook
-app.post(`/bot${TOKEN}`, (req, res) => {
+// ✅ Endpoint corretto
+app.post(`/webhook/${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
+});
 });
 
 // ✅ Comando /start
