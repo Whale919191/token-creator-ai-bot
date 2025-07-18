@@ -8,7 +8,11 @@ dotenv.config();
 const app = express();
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const BASE_URL = process.env.BASE_URL;
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server avviato sulla porta ${PORT}`);
+});
 
 const bot = new TelegramBot(TOKEN, { webHook: { port: PORT } });
 
