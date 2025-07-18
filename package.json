@@ -1,14 +1,14 @@
 {
   "name": "token-creator-ai-bot",
   "version": "1.0.0",
+  "description": "Bot Telegram per creare token AI su Solana",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
   "dependencies": {
-    "axios": "^1.6.8",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.18.4",
     "node-telegram-bot-api": "^0.61.0"
   }
+}
 }
