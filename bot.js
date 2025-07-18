@@ -1,20 +1,17 @@
-require('dotenv').config();
-const express = require('express');
-const { Telegraf } = require('telegraf');
+import dotenv from 'dotenv';
+import express from 'express';
+import { Telegraf } from 'telegraf';
 
+dotenv.config();
 const app = express();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Risposta al comando /start
 bot.start((ctx) => {
   ctx.reply('👋 Benvenuto su Token Creator AI!');
 });
 
-// Risponde a qualsiasi messaggio testuale
 bot.on('text', async (ctx) => {
   const idea = ctx.message.text;
-
-  // Genera nome e ticker fake
   const fakeName = idea.split(' ')[0].toUpperCase() + ' Coin';
   const fakeTicker = idea
     .split(' ')
@@ -26,24 +23,23 @@ bot.on('text', async (ctx) => {
   await ctx.reply(`💡 Nome token: *${fakeName}*\n🔤 Ticker: *${fakeTicker}*`, { parse_mode: "Markdown" });
 
   const logoUrl = `https://robohash.org/${encodeURIComponent(idea)}.png?set=set3`;
-
   await ctx.replyWithPhoto({ url: logoUrl }, {
     caption: `🧪 Logo generato per: *${idea}*`,
     parse_mode: "Markdown"
   });
 });
 
-// Endpoint di salute per Render
+// Endpoint per mantenere vivo il bot su Render
 app.get("/", (req, res) => {
   res.send("✅ Bot attivo!");
 });
 
-// Avvia il bot
-bot.launch();
-console.log("🤖 Bot attivato!");
-
-// Web server necessario per Render (Webhook)
+// Avvia il webserver
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🌐 Web service attivo sulla porta ${PORT}`);
+  console.log(`🌐 Web server attivo sulla porta ${PORT}`);
 });
+
+// Avvia il bot
+bot.launch();
+console.log("🤖 Bot Telegram avviato!");
