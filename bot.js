@@ -30,7 +30,6 @@ app.post(`/webhook/${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
-});
 
 // ✅ Comando /start
 bot.onText(/\/start/, (msg) => {
