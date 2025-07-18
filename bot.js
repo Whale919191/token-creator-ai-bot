@@ -55,17 +55,58 @@ function generaNomeETicker() {
 
 bot.onText(/\/create/, async (msg) => {
   const chatId = msg.chat.id;
-
-  // Genera nome e ticker
   const { nome, ticker } = generaNomeETicker();
-
-  // Genera URL logo da RoboHash
   const logoUrl = `https://robohash.org/${nome}.png`;
 
-  // Messaggio con anteprima
-  const message = `🪙 *Nome:* ${nome}\n🔤 *Ticker:* ${ticker}\n🖼️ *Logo generato:*\n${logoUrl}`;
+  const message = `🪙 *Nome:* ${nome}\n🔤 *Ticker:* ${ticker}\n🖼️ *Logo generato:*`;
+  
+  await bot.sendPhoto(chatId, logoUrl, {
+    caption: message,
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '🔁 Rigenera', callback_data: 'rigenera' },
+          { text: '✅ Conferma', callback_data: `conferma_${nome}_${ticker}` }
+        ]
+      ]
+    }
+  });
+});
+// 🔽 Incollalo subito sotto il blocco /create
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
 
-  await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  if (data === 'rigenera') {
+    const { nome, ticker } = generaNomeETicker();
+    const logoUrl = `https://robohash.org/${nome}.png`;
+    const message = `🪙 *Nome:* ${nome}\n🔤 *Ticker:* ${ticker}\n🖼️ *Logo generato:*`;
+
+    await bot.sendPhoto(chatId, logoUrl, {
+      caption: message,
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '🔁 Rigenera', callback_data: 'rigenera' },
+            { text: '✅ Conferma', callback_data: `conferma_${nome}_${ticker}` }
+          ]
+        ]
+      }
+    });
+  }
+
+  if (data.startsWith('conferma_')) {
+    const [, nome, ticker] = data.split('_');
+    await bot.sendMessage(chatId, `✅ Token confermato:\n*Nome:* ${nome}\n*Ticker:* ${ticker}`, {
+      parse_mode: 'Markdown'
+    });
+
+    // Qui potrai inserire la logica di deploy automatico su Solana in futuro
+  }
+
+  await bot.answerCallbackQuery(query.id);
 });
 
 // Avvia Express
