@@ -24,20 +24,25 @@ bot.onText(/\/start/, (msg) => {
 });
 
 // ✅ Avvia Express e poi imposta il webhook
-app.listen(PORT, async () => {
+
+
+  app.listen(PORT, () => {
   console.log(`🚀 Server Express attivo sulla porta ${PORT}`);
 
-  try {
-    await bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`, {
-      allowed_updates: ['message'],
-      drop_pending_updates: true
-    });
-    console.log('✅ Webhook impostato correttamente!');
-  } catch (error) {
-    if (error.response && error.response.body) {
-      console.error('❌ Telegram error:', error.response.body);
-    } else {
-      console.error('❌ Errore generico:', error);
+  // ⏳ Attende 2 secondi prima di impostare il webhook
+  setTimeout(async () => {
+    try {
+      await bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`, {
+        allowed_updates: ['message'],
+        drop_pending_updates: true
+      });
+      console.log('✅ Webhook impostato correttamente!');
+    } catch (error) {
+      if (error.response && error.response.body) {
+        console.error('❌ Telegram error:', error.response.body);
+      } else {
+        console.error('❌ Errore generico:', error);
+      }
     }
-  }
+  }, 2000); // ⏱️ Attesa di 2 secondi
 });
