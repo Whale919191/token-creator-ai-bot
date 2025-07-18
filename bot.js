@@ -14,3 +14,10 @@ bot.on('text', (ctx) => {
 
 bot.launch();
 console.log("🤖 Bot attivo!");
+bot.on('text', (ctx) => {
+  const idea = ctx.message.text;
+  ctx.reply(`💡 Bella idea! Genero nome e logo per: ${idea}`);
+
+  const logoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(idea)}&background=random&bold=true`;
+  ctx.replyWithPhoto(logoUrl);
+});
