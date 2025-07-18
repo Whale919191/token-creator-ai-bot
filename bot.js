@@ -1,5 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
+import dotenv from 'dotenv';     // ✅ AGGIUNGI QUESTA RIGA
+dotenv.config();                 // ✅ E QUESTA
 
 const app = express();
 
@@ -14,7 +16,7 @@ const bot = new TelegramBot(TOKEN);
 // ✅ Imposta il webhook
 (async () => {
   try {
-    await bot.deleteWebHook(); // rimuove webhook vecchi
+    await bot.deleteWebHook();
     const url = `${BASE_URL}/webhook/${TOKEN}`;
     const success = await bot.setWebHook(url);
     console.log('✅ Webhook impostato:', success);
@@ -26,18 +28,13 @@ const bot = new TelegramBot(TOKEN);
 // ✅ Middleware per JSON
 app.use(express.json());
 
-// ✅ Endpoint per ricevere gli update da Telegram
+// ✅ Endpoint per ricevere update da Telegram
 app.post(`/webhook/${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
 
-// ✅ Comando /start
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, '👋 Benvenuto su Token Creator AI!');
-});
-
-// ✅ Avvia il server Express
+// ✅ Avvia il server
 app.listen(PORT, () => {
-  console.log(`🚀 Server Express attivo sulla porta ${PORT}`);
+  console.log(`🚀 Server avviato sulla porta ${PORT}`);
 });
