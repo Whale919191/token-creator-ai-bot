@@ -11,12 +11,13 @@ const PORT = process.env.PORT || 3000;
 const bot = new TelegramBot(TOKEN);
 bot.setWebHook(`${BASE_URL}/bot${TOKEN}`)
   .then(() => console.log('✅ Webhook impostato correttamente!'))
-  .catch(err => if (error.response && error.response.body) {
-  console.error('❌ Telegram error:', error.response.body);
-} else {
-  console.error('❌ Errore generico:', error);
-}
-
+ .catch((error) => {
+  if (error.response && error.response.body) {
+    console.error('❌ Telegram error:', error.response.body);
+  } else {
+    console.error('❌ Errore generico:', error);
+  }
+});
 // Webhook Express
 app.use(express.json());
 app.post(`/bot${TOKEN}`, (req, res) => {
