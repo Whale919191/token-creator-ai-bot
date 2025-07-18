@@ -12,19 +12,19 @@ const PORT = process.env.PORT || 3000;
 // ✅ Inizializza il bot senza polling
 const bot = new TelegramBot(TOKEN);
 
-// ✅ Webhook corretto
-bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`, {
-  allowed_updates: ['message'],
-  drop_pending_updates: true
-});
-  .then(() => console.log('✅ Webhook impostato correttamente!'))
-  .catch((error) => {
-    if (error.response && error.response.body) {
-      console.error('❌ Telegram error:', error.response.body);
-    } else {
-      console.error('❌ Errore generico:', error);
-    }
+// try {
+  bot.setWebHook(`${BASE_URL}/webhook/${TOKEN}`, {
+    allowed_updates: ['message'],
+    drop_pending_updates: true
   });
+  console.log('✅ Webhook impostato correttamente!');
+} catch (error) {
+  if (error.response && error.response.body) {
+    console.error('❌ Telegram error:', error.response.body);
+  } else {
+    console.error('❌ Errore generico:', error);
+  }
+}
 
 // ✅ Endpoint corretto
 app.post(`/webhook/${TOKEN}`, (req, res) => {
