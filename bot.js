@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 const token = process.env.TELEGRAM_TOKEN;
-const baseUrl = process.env.BASE_URL;
+const baseUrl = process.env.BASE_URL?.trim();
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_PATH = `/bot${token}`;
 const WEBHOOK_URL = `${baseUrl}${WEBHOOK_PATH}`;
