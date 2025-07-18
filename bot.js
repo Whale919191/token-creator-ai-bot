@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 const bot = new TelegramBot(TOKEN);
 bot.setWebHook(`${BASE_URL}/bot${TOKEN}`)
   .then(() => console.log('✅ Webhook impostato correttamente!'))
- .catch((error) => {
+.catch((error) => {
   if (error.response && error.response.body) {
     console.error('❌ Telegram error:', error.response.body);
   } else {
