@@ -249,3 +249,29 @@ app.get('/ping', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server avviato su http://localhost:${PORT}`);
 });
+
+// API endpoint per lanciare token (mock)
+app.post('/api/launch', async (req, res) => {
+  const { wallet, name, ticker, logo } = req.body;
+
+  if (!wallet || !name || !ticker) {
+    return res.status(400).json({ error: 'Dati mancanti: wallet, nome o ticker' });
+  }
+
+  try {
+    // Qui in futuro metterai la logica per interazione reale con Pump.fun o LetsBonk
+    console.log(`💥 Lancio token richiesto:
+    👤 Wallet: ${wallet}
+    🏷️ Nome: ${name}
+    💲 Ticker: ${ticker}
+    🖼️ Logo: ${logo}`);
+
+    // Simulazione di un link di ritorno (da Pump.fun o simili)
+    const fakeTokenLink = `https://pump.fun/token/${encodeURIComponent(name + '_' + ticker)}`;
+
+    res.json({ success: true, link: fakeTokenLink });
+  } catch (err) {
+    console.error('❌ Errore lancio token:', err);
+    res.status(500).json({ error: 'Errore interno durante il lancio del token' });
+  }
+});
