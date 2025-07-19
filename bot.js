@@ -47,12 +47,10 @@ app.post(WEBHOOK_PATH, (req, res) => {
 const userWallets = new Map(); // user_id => publicKey
 const OWNER_ID = 2065900708;
 
-// Middleware per bloccare utenti non autorizzati
 function isAuthorized(msg) {
   return msg.from.id === OWNER_ID;
 }
 
-// Utility
 function getRandomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
@@ -130,7 +128,8 @@ bot.onText(/\/create/, async (msg) => {
 bot.onText(/\/launch/, (msg) => {
   if (!isAuthorized(msg)) return;
   const chatId = msg.chat.id;
-  const launchUrl = `${baseUrl}/launch?chat_id=${chatId}`;
+  const launchUrl = `${baseUrl.replace(/\n/g, '').trim()}/launch?chat_id=${chatId}`;
+
   bot.sendMessage(chatId, '🚀 <b>Token Personalizzato</b>\n\nPremi il bottone qui sotto per configurare e lanciare il tuo token:', {
     parse_mode: 'HTML',
     reply_markup: {
@@ -177,7 +176,6 @@ bot.onText(/\/walletbalance/, async (msg) => {
   }
 });
 
-// CALLBACK
 bot.on('callback_query', async (query) => {
   if (query.from.id !== OWNER_ID) return;
   const chatId = query.message.chat.id;
