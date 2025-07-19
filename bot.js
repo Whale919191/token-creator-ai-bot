@@ -180,6 +180,11 @@ app.get('/launch', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/launch.html'));
 });
 
+// ✅ Endpoint keep-alive per UptimeRobot
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
+
 // 🚀 Avvio server
 app.listen(PORT, () => {
   console.log(`🚀 Server avviato sulla porta ${PORT}`);
