@@ -4,6 +4,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { Keypair, Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import bs58 from 'bs58';
@@ -30,24 +31,50 @@ if (!token || !baseUrl) {
 const bot = new TelegramBot(token, { webHook: true });
 bot.setWebHook(WEBHOOK_URL);
 
+// === WALLET PERSISTENZA ===
+
+const walletFilePath = path.join(__dirname, 'wallet.json');
+let walletDB = {};
+
+if (fs.existsSync(walletFilePath)) {
+  walletDB = JSON.parse(fs.readFileSync(walletFilePath, 'utf-8'));
+}
+
+// Funzioni helper
+function saveWallets() {
+  fs.writeFileSync(walletFilePath, JSON.stringify(walletDB, null, 2));
+}
+
+function getUserWallet(userId) {
+  return walletDB[userId];
+}
+
+function setUserWallet(userId, publicKey) {
+  walletDB[userId] = publicKey;
+  saveWallets();
+}
+
+function deleteUserWallet(userId) {
+  delete walletDB[userId];
+  saveWallets();
+}
+
+// === COMANDI ===
+
+const OWNER_ID = 2065900708;
+
 bot.setMyCommands([
   { command: 'start', description: 'Avvia il bot' },
   { command: 'create', description: 'Genera un nuovo token AI' },
-  { command: 'wallet', description: 'Crea o collega un wallet Solana' },
+  { command: 'wallet', description: 'Gestisci il tuo wallet Solana' },
   { command: 'walletbalance', description: 'Mostra il saldo del wallet' }
 ]);
-
-app.post(WEBHOOK_PATH, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
-});
-
-const userWallets = new Map(); // user_id => publicKey
-const OWNER_ID = 2065900708;
 
 function isAuthorized(msg) {
   return msg.from.id === OWNER_ID;
 }
+
+// ===== TOKEN GENERATION =====
 
 function getRandomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -90,11 +117,11 @@ async function getTrendingToken() {
   }
 }
 
-// COMANDI
+// ===== COMANDI TELEGRAM =====
 
 bot.onText(/\/start/, (msg) => {
   if (!isAuthorized(msg)) return;
-  bot.sendMessage(msg.chat.id, '👋 Benvenuto in Token Creator AI!\n\nUsa /create per generare un token AI.\nPuoi anche usare /wallet per generare o collegare un wallet Solana.');
+  bot.sendMessage(msg.chat.id, '👋 Benvenuto in Token Creator AI!\n\nUsa /create per generare un token AI.\nUsa /wallet per gestire il tuo wallet Solana.');
 });
 
 bot.onText(/\/create/, async (msg) => {
@@ -125,41 +152,60 @@ bot.onText(/\/create/, async (msg) => {
 
 bot.onText(/\/wallet/, (msg) => {
   if (!isAuthorized(msg)) return;
-  const keyboard = {
-    inline_keyboard: [
-      [
-        { text: '🧬 Genera nuovo wallet', callback_data: 'generate_wallet' },
-        { text: '🔗 Collega wallet esistente', callback_data: 'link_wallet' }
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  const wallet = getUserWallet(userId);
+
+  if (wallet) {
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '🗑️ Cancella wallet', callback_data: 'delete_wallet' }]
       ]
-    ]
-  };
-  bot.sendMessage(msg.chat.id, '🔐 <b>Gestione Wallet</b>\n\nScegli un\'opzione:', {
-    parse_mode: 'HTML',
-    reply_markup: keyboard
-  });
+    };
+    bot.sendMessage(chatId, `🔐 <b>Wallet collegato</b>\n\n📬 <code>${wallet}</code>`, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+  } else {
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: '🧬 Genera nuovo wallet', callback_data: 'generate_wallet' },
+          { text: '🔗 Collega wallet esistente', callback_data: 'link_wallet' }
+        ]
+      ]
+    };
+    bot.sendMessage(chatId, '🔐 <b>Nessun wallet collegato</b>\n\nScegli un\'opzione:', {
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+  }
 });
 
 bot.onText(/\/walletbalance/, async (msg) => {
   if (!isAuthorized(msg)) return;
-  const userId = msg.from.id;
   const chatId = msg.chat.id;
-  const publicKeyStr = userWallets.get(userId);
-  if (!publicKeyStr) {
-    return bot.sendMessage(chatId, '❌ Nessun wallet collegato. Usa /wallet per collegarne uno.');
+  const userId = msg.from.id;
+  const pubKey = getUserWallet(userId);
+
+  if (!pubKey) {
+    return bot.sendMessage(chatId, '❌ Nessun wallet collegato. Usa /wallet per iniziare.');
   }
 
   try {
     const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
-    const balanceLamports = await connection.getBalance(new PublicKey(publicKeyStr));
+    const balanceLamports = await connection.getBalance(new PublicKey(pubKey));
     const sol = balanceLamports / 1e9;
-    await bot.sendMessage(chatId, `💰 <b>Saldo del tuo wallet</b>\n\n📬 <code>${publicKeyStr}</code>\n💸 <b>${sol.toFixed(4)} SOL</b>`, {
+    await bot.sendMessage(chatId, `💰 <b>Saldo del wallet</b>\n\n📬 <code>${pubKey}</code>\n💸 <b>${sol.toFixed(4)} SOL</b>`, {
       parse_mode: 'HTML'
     });
   } catch (err) {
-    console.error('❌ Errore recupero balance:', err);
+    console.error(err);
     bot.sendMessage(chatId, '❌ Errore durante il recupero del saldo.');
   }
 });
+
+// === CALLBACK QUERY ===
 
 bot.on('callback_query', async (query) => {
   if (query.from.id !== OWNER_ID) return;
@@ -172,8 +218,8 @@ bot.on('callback_query', async (query) => {
     const name = tokenData?.name || 'Meme Token';
     const ticker = tokenData?.ticker || 'MEME';
     const logo = `https://robohash.org/${name}.png?size=200x200&set=set5`;
+    const caption = `🎉 <b>Token rigenerato</b>\n\n🏷️ <b>${name}</b>\n💲 <b>${ticker}</b>\n\nVuoi confermare o rigenerare?`;
 
-    const caption = `🎉 <b>Token rigenerato</b>\n\n🏷️ Nome: <b>${name}</b>\n💲 Ticker: <b>${ticker}</b>\n\nVuoi confermare o rigenerare?`;
     const keyboard = {
       inline_keyboard: [
         [
@@ -201,25 +247,35 @@ bot.on('callback_query', async (query) => {
     const wallet = Keypair.generate();
     const publicKey = wallet.publicKey.toBase58();
     const privateKey = bs58.encode(wallet.secretKey);
-    userWallets.set(userId, publicKey);
+    setUserWallet(userId, publicKey);
     await bot.sendMessage(chatId, `🧬 <b>Wallet generato</b>\n\n📬 <b>Public Key:</b> <code>${publicKey}</code>\n🔐 <b>Private Key:</b> <code>${privateKey}</code>\n\n⚠️ Salva queste informazioni!`, {
       parse_mode: 'HTML'
     });
   } else if (query.data === 'link_wallet') {
-    await bot.sendMessage(chatId, '🔗 Inviami ora il tuo indirizzo wallet Solana (public key):');
+    await bot.sendMessage(chatId, '🔗 Inviami il tuo indirizzo wallet Solana (public key):');
     bot.once('message', async (msg2) => {
       if (!isAuthorized(msg2)) return;
       const input = msg2.text.trim();
       if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input)) {
-        userWallets.set(userId, input);
-        await bot.sendMessage(chatId, `✅ Wallet collegato con successo:\n\n<code>${input}</code>`, { parse_mode: 'HTML' });
+        setUserWallet(userId, input);
+        await bot.sendMessage(chatId, `✅ Wallet collegato:\n\n<code>${input}</code>`, { parse_mode: 'HTML' });
       } else {
         await bot.sendMessage(chatId, '❌ Indirizzo non valido. Riprova.');
       }
     });
+  } else if (query.data === 'delete_wallet') {
+    deleteUserWallet(userId);
+    await bot.sendMessage(chatId, '🗑️ Wallet eliminato con successo. Usa /wallet per crearne uno nuovo.');
   }
 
   bot.answerCallbackQuery(query.id);
+});
+
+// === SERVER ===
+
+app.post(WEBHOOK_PATH, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
 });
 
 app.get('/ping', (req, res) => {
