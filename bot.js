@@ -1,4 +1,4 @@
-import express from 'express';
+importimport express from 'express';
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
@@ -245,13 +245,7 @@ app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server avviato sulla porta ${PORT}`);
-});
-
-// Avvio server
+// ✅ Start server (solo una volta!)
 app.listen(PORT, () => {
   console.log(`🚀 Server avviato su http://localhost:${PORT}`);
 });
