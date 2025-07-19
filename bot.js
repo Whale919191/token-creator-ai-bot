@@ -15,7 +15,6 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
 const token = process.env.TELEGRAM_TOKEN;
 const baseUrl = process.env.BASE_URL;
@@ -34,7 +33,6 @@ bot.setWebHook(WEBHOOK_URL);
 bot.setMyCommands([
   { command: 'start', description: 'Avvia il bot' },
   { command: 'create', description: 'Genera un nuovo token AI' },
-  { command: 'launch', description: 'Lancia un token personalizzato' },
   { command: 'wallet', description: 'Crea o collega un wallet Solana' },
   { command: 'walletbalance', description: 'Mostra il saldo del wallet' }
 ]);
@@ -96,7 +94,7 @@ async function getTrendingToken() {
 
 bot.onText(/\/start/, (msg) => {
   if (!isAuthorized(msg)) return;
-  bot.sendMessage(msg.chat.id, '👋 Benvenuto in Token Creator AI!\n\nUsa /create per generare un token AI oppure /launch per creare il tuo token personalizzato!\n\nPuoi anche usare /wallet per generare o collegare un wallet Solana.');
+  bot.sendMessage(msg.chat.id, '👋 Benvenuto in Token Creator AI!\n\nUsa /create per generare un token AI.\nPuoi anche usare /wallet per generare o collegare un wallet Solana.');
 });
 
 bot.onText(/\/create/, async (msg) => {
@@ -122,19 +120,6 @@ bot.onText(/\/create/, async (msg) => {
     caption,
     parse_mode: 'HTML',
     reply_markup: keyboard
-  });
-});
-
-bot.onText(/\/launch/, (msg) => {
-  if (!isAuthorized(msg)) return;
-  const chatId = msg.chat.id;
-  const launchUrl = `${baseUrl.replace(/\n/g, '').trim()}/launch?chat_id=${chatId}`;
-
-  bot.sendMessage(chatId, '🚀 <b>Token Personalizzato</b>\n\nPremi il bottone qui sotto per configurare e lanciare il tuo token:', {
-    parse_mode: 'HTML',
-    reply_markup: {
-      inline_keyboard: [[{ text: '🚀 Crea ora', url: launchUrl }]]
-    }
   });
 });
 
@@ -237,41 +222,10 @@ bot.on('callback_query', async (query) => {
   bot.answerCallbackQuery(query.id);
 });
 
-// HTML Web App
-app.get('/launch', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/launch.html'));
-});
-
 app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Server avviato su http://localhost:${PORT}`);
-});
-
-// API endpoint per lanciare token (mock)
-app.post('/api/launch', async (req, res) => {
-  const { wallet, name, ticker, logo } = req.body;
-
-  if (!wallet || !name || !ticker) {
-    return res.status(400).json({ error: 'Dati mancanti: wallet, nome o ticker' });
-  }
-
-  try {
-    // Qui in futuro metterai la logica per interazione reale con Pump.fun o LetsBonk
-    console.log(`💥 Lancio token richiesto:
-    👤 Wallet: ${wallet}
-    🏷️ Nome: ${name}
-    💲 Ticker: ${ticker}
-    🖼️ Logo: ${logo}`);
-
-    // Simulazione di un link di ritorno (da Pump.fun o simili)
-    const fakeTokenLink = `https://pump.fun/token/${encodeURIComponent(name + '_' + ticker)}`;
-
-    res.json({ success: true, link: fakeTokenLink });
-  } catch (err) {
-    console.error('❌ Errore lancio token:', err);
-    res.status(500).json({ error: 'Errore interno durante il lancio del token' });
-  }
 });
