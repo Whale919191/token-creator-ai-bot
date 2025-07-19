@@ -58,8 +58,6 @@ function deleteUserWallet(userId) {
   saveWallets();
 }
 
-// === COMANDI ===
-
 const OWNER_ID = 2065900708;
 
 bot.setMyCommands([
@@ -71,8 +69,6 @@ bot.setMyCommands([
 function isAuthorized(msg) {
   return msg.from.id === OWNER_ID;
 }
-
-// === TOKEN GENERATION ===
 
 function getRandomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -115,7 +111,7 @@ async function getTrendingToken() {
   }
 }
 
-// === COMANDI TELEGRAM ===
+// === /start e /create ===
 
 bot.onText(/\/start/, (msg) => {
   if (!isAuthorized(msg)) return;
@@ -148,22 +144,31 @@ bot.onText(/\/create/, async (msg) => {
   });
 });
 
-bot.onText(/\/wallet/, (msg) => {
+// === /wallet ===
+
+bot.onText(/\/wallet/, async (msg) => {
   if (!isAuthorized(msg)) return;
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const wallet = getUserWallet(userId);
 
   if (wallet) {
+    const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
+    let balance = 0;
+    try {
+      balance = await connection.getBalance(new PublicKey(wallet));
+    } catch (err) {
+      console.error('❌ Errore bilancio:', err);
+    }
+    const sol = balance / 1e9;
     const keyboard = {
       inline_keyboard: [
         [{ text: '🗑️ Cancella wallet', callback_data: 'delete_wallet' }]
       ]
     };
-    bot.sendMessage(chatId, `🔐 <b>Wallet collegato</b>\n\n📬 <code>${wallet}</code>`, {
-      parse_mode: 'HTML',
-      reply_markup: keyboard
-    });
+    await bot.sendMessage(chatId,
+      `🔐 <b>Wallet collegato</b>\n\n📬 <code>${wallet}</code>\n\n💰 Saldo: ${sol} SOL`,
+      { parse_mode: 'HTML', reply_markup: keyboard });
   } else {
     const keyboard = {
       inline_keyboard: [
@@ -173,10 +178,9 @@ bot.onText(/\/wallet/, (msg) => {
         ]
       ]
     };
-    bot.sendMessage(chatId, '🔐 <b>Nessun wallet collegato</b>\n\nScegli un\'opzione:', {
-      parse_mode: 'HTML',
-      reply_markup: keyboard
-    });
+    await bot.sendMessage(chatId,
+      '🔐 <b>Nessun wallet collegato</b>\n\nScegli un\'opzione:',
+      { parse_mode: 'HTML', reply_markup: keyboard });
   }
 });
 
@@ -187,8 +191,38 @@ bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const userId = query.from.id;
   const messageId = query.message.message_id;
+  const existingWallet = getUserWallet(userId);
 
-  if (query.data === 'regenerate') {
+  if (query.data === 'generate_wallet') {
+    if (existingWallet) {
+      return bot.answerCallbackQuery(query.id, { text: '⚠️ Hai già un wallet. Eliminalo prima di crearne uno nuovo.', show_alert: true });
+    }
+    const wallet = Keypair.generate();
+    const publicKey = wallet.publicKey.toBase58();
+    const privateKey = bs58.encode(wallet.secretKey);
+    setUserWallet(userId, publicKey);
+    await bot.sendMessage(chatId, `🧬 <b>Wallet generato</b>\n\n📬 <b>Public Key:</b> <code>${publicKey}</code>\n🔐 <b>Private Key:</b> <code>${privateKey}</code>\n\n⚠️ Salva queste informazioni!`, {
+      parse_mode: 'HTML'
+    });
+  } else if (query.data === 'link_wallet') {
+    if (existingWallet) {
+      return bot.answerCallbackQuery(query.id, { text: '⚠️ Hai già un wallet. Eliminalo prima di collegarne uno nuovo.', show_alert: true });
+    }
+    await bot.sendMessage(chatId, '🔗 Inviami il tuo indirizzo wallet Solana (public key):');
+    bot.once('message', async (msg2) => {
+      if (!isAuthorized(msg2)) return;
+      const input = msg2.text.trim();
+      if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input)) {
+        setUserWallet(userId, input);
+        await bot.sendMessage(chatId, `✅ Wallet collegato:\n\n<code>${input}</code>`, { parse_mode: 'HTML' });
+      } else {
+        await bot.sendMessage(chatId, '❌ Indirizzo non valido. Riprova.');
+      }
+    });
+  } else if (query.data === 'delete_wallet') {
+    deleteUserWallet(userId);
+    await bot.sendMessage(chatId, '🗑️ Wallet eliminato con successo. Usa /wallet per crearne uno nuovo.');
+  } else if (query.data === 'regenerate') {
     const tokenData = await getTrendingToken();
     const name = tokenData?.name || 'Meme Token';
     const ticker = tokenData?.ticker || 'MEME';
@@ -218,29 +252,6 @@ bot.on('callback_query', async (query) => {
       message_id: messageId,
       parse_mode: 'HTML'
     });
-  } else if (query.data === 'generate_wallet') {
-    const wallet = Keypair.generate();
-    const publicKey = wallet.publicKey.toBase58();
-    const privateKey = bs58.encode(wallet.secretKey);
-    setUserWallet(userId, publicKey);
-    await bot.sendMessage(chatId, `🧬 <b>Wallet generato</b>\n\n📬 <b>Public Key:</b> <code>${publicKey}</code>\n🔐 <b>Private Key:</b> <code>${privateKey}</code>\n\n⚠️ Salva queste informazioni!`, {
-      parse_mode: 'HTML'
-    });
-  } else if (query.data === 'link_wallet') {
-    await bot.sendMessage(chatId, '🔗 Inviami il tuo indirizzo wallet Solana (public key):');
-    bot.once('message', async (msg2) => {
-      if (!isAuthorized(msg2)) return;
-      const input = msg2.text.trim();
-      if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input)) {
-        setUserWallet(userId, input);
-        await bot.sendMessage(chatId, `✅ Wallet collegato:\n\n<code>${input}</code>`, { parse_mode: 'HTML' });
-      } else {
-        await bot.sendMessage(chatId, '❌ Indirizzo non valido. Riprova.');
-      }
-    });
-  } else if (query.data === 'delete_wallet') {
-    deleteUserWallet(userId);
-    await bot.sendMessage(chatId, '🗑️ Wallet eliminato con successo. Usa /wallet per crearne uno nuovo.');
   }
 
   bot.answerCallbackQuery(query.id);
