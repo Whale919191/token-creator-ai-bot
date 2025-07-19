@@ -233,7 +233,9 @@ bot.onText(/\/walletbalance/, async (msg) => {
     const balanceLamports = await connection.getBalance(new PublicKey(publicKeyStr));
     const sol = balanceLamports / 1e9;
 
-    bot.sendMessage(chatId, `💰 <b>Saldo attuale</b>\n\n📬 <code>${publicKeyStr}</code>\n💸 <b>${sol.toFixed(4)} SOL</b>`, { parse_mode: 'HTML' });
+    await bot.sendMessage(chatId, `💰 <b>Saldo del tuo wallet</b>\n\n📬 <code>${publicKeyStr}</code>\n💸 <b>${sol.toFixed(4)} SOL</b>`, {
+      parse_mode: 'HTML'
+    });
   } catch (err) {
     console.error('❌ Errore recupero balance:', err);
     bot.sendMessage(chatId, '❌ Errore durante il recupero del saldo.');
