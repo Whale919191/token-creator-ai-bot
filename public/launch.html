@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Launch Token</title>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.73.3/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-wallets@0.11.27/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-base@0.9.21/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-wallets@0.11.27/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-phantom@0.11.27/lib/index.iife.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f0f0f;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+    input, select, button {
+      margin: 10px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    input, select {
+      width: 300px;
+    }
+    button {
+      background-color: #1e90ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0c7cd5;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 Launch Your Meme Token</h1>
+
+  <input id="name" placeholder="Token Name" />
+  <input id="ticker" placeholder="Token Ticker" maxlength="5" />
+  <input id="logo" placeholder="Token Logo URL (optional)" />
+
+  <select id="platform">
+    <option value="pump">Pump.fun</option>
+    <option value="bonk">LetsBonk</option>
+  </select>
+
+  <button onclick="connectWallet()">🔗 Connect Phantom Wallet</button>
+  <button onclick="launchToken()">🚀 Launch Token</button>
+
+  <p id="status"></p>
+
+  <script>
+    let wallet = null;
+
+    async function connectWallet() {
+      if ('solana' in window) {
+        try {
+          const resp = await window.solana.connect();
+          wallet = resp.publicKey.toString();
+          document.getElementById('status').textContent = `✅ Connected: ${wallet}`;
+        } catch (err) {
+          console.error(err);
+          document.getElementById('status').textContent = `❌ Wallet connection failed.`;
+        }
+      } else {
+        alert("Phantom Wallet not found. Please install it.");
+      }
+    }
+
+    function launchToken() {
+      const name = document.getElementById('name').value.trim();
+      const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+      const logo = document.getElementById('logo').value.trim();
+      const platform = document.getElementById('platform').value;
+
+      if (!wallet) {
+        alert("Please connect your Phantom wallet first.");
+        return;
+      }
+
+      if (!name || !ticker) {
+        alert("Token name and ticker are required.");
+        return;
+      }
+
+      let url;
+      if (platform === 'pump') {
+        url = `https://pump.fun/create?splTokenName=${encodeURIComponent(name)}&splTokenSymbol=${encodeURIComponent(ticker)}&splTokenImage=${encodeURIComponent(logo)}&owner=${wallet}`;
+      } else {
+        url = `https://letsbonk.io/create?splTokenName=${encodeURIComponent(name)}&splTokenSymbol=${encodeURIComponent(ticker)}&splTokenImage=${encodeURIComponent(logo)}&owner=${wallet}`;
+      }
+
+      document.getElementById('status').textContent = `🌐 Opening ${platform}...`;
+      window.open(url, '_blank');
+    }
+  </script>
+
+</body>
+</html>
