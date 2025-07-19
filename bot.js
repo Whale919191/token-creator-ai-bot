@@ -165,9 +165,10 @@ bot.on('callback_query', async (query) => {
   bot.answerCallbackQuery(query.id);
 });
 
-// 🧨 /launch (token personalizzato)
+// 🚀 /launch (token personalizzato)
 bot.onText(/\/launch/, async (msg) => {
   const chatId = msg.chat.id;
+  const baseUrl = 'https://token-creator-ai-bot.onrender.com';
   const launchUrl = `${baseUrl}/launch?chat_id=${chatId}`;
 
   bot.sendMessage(chatId, '🚀 <b>Token Personalizzato</b>\n\nPremi il bottone qui sotto per configurare e lanciare il tuo token:', {
@@ -179,7 +180,6 @@ bot.onText(/\/launch/, async (msg) => {
     }
   });
 });
-
 // 🌐 Pagina web /launch
 app.get('/launch', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/launch.html'));
