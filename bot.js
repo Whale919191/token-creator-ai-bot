@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Keypair } from '@solana/web3.js';
 
 dotenv.config();
 
@@ -32,7 +33,8 @@ bot.setWebHook(WEBHOOK_URL).then(() => {
   bot.setMyCommands([
     { command: 'start', description: 'Avvia il bot' },
     { command: 'create', description: 'Genera un nuovo token AI' },
-    { command: 'launch', description: 'Lancia un token personalizzato' }
+    { command: 'launch', description: 'Lancia un token personalizzato' },
+    { command: 'wallet', description: 'Crea o collega un wallet Solana' }
   ]);
 }).catch((err) => {
   console.error('❌ Errore nel setWebhook:', err);
@@ -89,7 +91,7 @@ async function getTrendingToken() {
 
 // 🟢 /start
 bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, '👋 Benvenuto in Token Creator AI!\n\nUsa /create per generare un token AI oppure /launch per creare il tuo token personalizzato!');
+  bot.sendMessage(msg.chat.id, '👋 Benvenuto in Token Creator AI!\n\nUsa /create per generare un token AI oppure /launch per creare il tuo token personalizzato!\n\nPuoi anche usare /wallet per generare o collegare un wallet Solana.');
 });
 
 // 🪙 /create
@@ -119,7 +121,7 @@ bot.onText(/\/create/, async (msg) => {
   });
 });
 
-// 🔁 Callback query (rigenera o conferma)
+// 🔁 Callback query (rigenera, conferma, wallet)
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const messageId = query.message.message_id;
@@ -160,15 +162,32 @@ bot.on('callback_query', async (query) => {
       parse_mode: 'HTML'
     });
     console.log(`✅ Confermato: ${name} (${ticker})`);
+  } else if (query.data === 'generate_wallet') {
+    const wallet = Keypair.generate();
+    const publicKey = wallet.publicKey.toBase58();
+    const privateKey = `[${wallet.secretKey.toString()}]`;
+
+    await bot.sendMessage(chatId, `🧬 <b>Wallet generato</b>\n\n📬 <b>Public Key:</b> <code>${publicKey}</code>\n🧾 <b>Private Key:</b> <code>${privateKey}</code>\n\n⚠️ Salva queste informazioni in un posto sicuro!`, {
+      parse_mode: 'HTML'
+    });
+  } else if (query.data === 'link_wallet') {
+    await bot.sendMessage(chatId, '🔗 Inviami ora il tuo indirizzo wallet Solana (public key).');
+    bot.once('message', async (msg2) => {
+      const input = msg2.text.trim();
+      if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input)) {
+        await bot.sendMessage(chatId, `✅ Wallet collegato con successo:\n\n<code>${input}</code>`, { parse_mode: 'HTML' });
+      } else {
+        await bot.sendMessage(chatId, '❌ Indirizzo non valido. Riprova con un wallet Solana valido.');
+      }
+    });
   }
 
   bot.answerCallbackQuery(query.id);
 });
 
-// 🚀 /launch (token personalizzato)
+// 🚀 /launch
 bot.onText(/\/launch/, async (msg) => {
   const chatId = msg.chat.id;
-  const baseUrl = 'https://token-creator-ai-bot.onrender.com';
   const launchUrl = `${baseUrl}/launch?chat_id=${chatId}`;
 
   bot.sendMessage(chatId, '🚀 <b>Token Personalizzato</b>\n\nPremi il bottone qui sotto per configurare e lanciare il tuo token:', {
@@ -180,17 +199,37 @@ bot.onText(/\/launch/, async (msg) => {
     }
   });
 });
+
 // 🌐 Pagina web /launch
 app.get('/launch', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/launch.html'));
 });
 
-// ✅ Endpoint keep-alive per UptimeRobot
+// 🔐 /wallet
+bot.onText(/\/wallet/, async (msg) => {
+  const chatId = msg.chat.id;
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: '🧬 Genera nuovo wallet', callback_data: 'generate_wallet' },
+        { text: '🔗 Collega wallet esistente', callback_data: 'link_wallet' }
+      ]
+    ]
+  };
+
+  bot.sendMessage(chatId, '🔐 <b>Gestione Wallet</b>\n\nScegli un\'opzione:', {
+    parse_mode: 'HTML',
+    reply_markup: keyboard
+  });
+});
+
+// ✅ Ping
 app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
-// 🚀 Avvio server
+// 🚀 Start
 app.listen(PORT, () => {
   console.log(`🚀 Server avviato sulla porta ${PORT}`);
 });
