@@ -55,13 +55,33 @@
         return alert("❌ Inserisci nome e ticker del token");
       }
 
-      // Al momento stampa, in futuro chiamerà API o smart contract
       document.getElementById("status").innerText = "⏳ Lanciando token...";
-      
-      // Simula lancio token
-      setTimeout(() => {
-        document.getElementById("status").innerText = `✅ Token "${name}" (${ticker}) lanciato da ${walletAddress}!\n(Logo: ${logo || 'nessuno'})`;
-      }, 1500);
+
+      try {
+        const res = await fetch('/api/launch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            wallet: walletAddress,
+            name,
+            ticker,
+            logo
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          document.getElementById("status").innerText = `✅ Token lanciato con successo!\n\n🔗 ${data.link || 'Integrazione completata (mock)'}`;
+        } else {
+          document.getElementById("status").innerText = `❌ Errore: ${data.error || 'Impossibile lanciare il token'}`;
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "❌ Errore durante il lancio del token.";
+      }
     }
 
     document.getElementById("connectBtn").addEventListener("click", connectWallet);
