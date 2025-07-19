@@ -218,7 +218,7 @@ bot.onText(/\/wallet/, (msg) => {
   });
 });
 
-// 💰 /walletbalance
+// 💰 /walletbalance — SOLO saldo, senza gestione wallet
 bot.onText(/\/walletbalance/, async (msg) => {
   const userId = msg.from.id;
   const chatId = msg.chat.id;
@@ -245,7 +245,7 @@ app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
-// ✅ Start server (solo una volta!)
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server avviato su http://localhost:${PORT}`);
 });
