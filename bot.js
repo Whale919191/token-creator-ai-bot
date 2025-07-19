@@ -169,10 +169,10 @@ bot.on('callback_query', async (query) => {
 bot.onText(/\/launch/, async (msg) => {
   const chatId = msg.chat.id;
   const url = `${baseUrl}/launch?chat_id=${chatId}`;
-  bot.sendMessage(chatId, `🚀 <b>Token Personalizzato</b>\n\nPremi qui per configurare e lanciare il tuo token:\n👉 <a href="${url}">Crea ora</a>`, {
-    parse_mode: 'HTML',
-    disable_web_page_preview: false
-  });
+  bot.sendMessage(chatId, `🚀 <b>Token Personalizzato</b>\n\n<a href="${url}">🔗 Clicca qui per configurare e lanciare il tuo token</a>`, {
+  parse_mode: 'HTML',
+  disable_web_page_preview: false
+});
 });
 
 // 🌐 Pagina web /launch
