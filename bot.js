@@ -168,11 +168,16 @@ bot.on('callback_query', async (query) => {
 // 🧨 /launch (token personalizzato)
 bot.onText(/\/launch/, async (msg) => {
   const chatId = msg.chat.id;
-  const url = `${baseUrl}/launch?chat_id=${chatId}`;
-bot.sendMessage(chatId, `🚀 <b>Token Personalizzato</b>\n\n<a href="${url}">Clicca qui per configurare e lanciare</a>`, {
-  parse_mode: 'HTML',
-  disable_web_page_preview: false
-});
+  const launchUrl = `${baseUrl}/launch?chat_id=${chatId}`;
+
+  bot.sendMessage(chatId, '🚀 <b>Token Personalizzato</b>\n\nPremi il bottone qui sotto per configurare e lanciare il tuo token:', {
+    parse_mode: 'HTML',
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🚀 Crea ora', url: launchUrl }]
+      ]
+    }
+  });
 });
 
 // 🌐 Pagina web /launch
