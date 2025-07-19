@@ -40,7 +40,6 @@ if (fs.existsSync(walletFilePath)) {
   walletDB = JSON.parse(fs.readFileSync(walletFilePath, 'utf-8'));
 }
 
-// Funzioni helper
 function saveWallets() {
   fs.writeFileSync(walletFilePath, JSON.stringify(walletDB, null, 2));
 }
@@ -66,15 +65,14 @@ const OWNER_ID = 2065900708;
 bot.setMyCommands([
   { command: 'start', description: 'Avvia il bot' },
   { command: 'create', description: 'Genera un nuovo token AI' },
-  { command: 'wallet', description: 'Gestisci il tuo wallet Solana' },
-  { command: 'walletbalance', description: 'Mostra il saldo del wallet' }
+  { command: 'wallet', description: 'Gestisci il tuo wallet Solana' }
 ]);
 
 function isAuthorized(msg) {
   return msg.from.id === OWNER_ID;
 }
 
-// ===== TOKEN GENERATION =====
+// === TOKEN GENERATION ===
 
 function getRandomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -117,7 +115,7 @@ async function getTrendingToken() {
   }
 }
 
-// ===== COMANDI TELEGRAM =====
+// === COMANDI TELEGRAM ===
 
 bot.onText(/\/start/, (msg) => {
   if (!isAuthorized(msg)) return;
@@ -182,30 +180,7 @@ bot.onText(/\/wallet/, (msg) => {
   }
 });
 
-bot.onText(/\/walletbalance/, async (msg) => {
-  if (!isAuthorized(msg)) return;
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  const pubKey = getUserWallet(userId);
-
-  if (!pubKey) {
-    return bot.sendMessage(chatId, '❌ Nessun wallet collegato. Usa /wallet per iniziare.');
-  }
-
-  try {
-    const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
-    const balanceLamports = await connection.getBalance(new PublicKey(pubKey));
-    const sol = balanceLamports / 1e9;
-    await bot.sendMessage(chatId, `💰 <b>Saldo del wallet</b>\n\n📬 <code>${pubKey}</code>\n💸 <b>${sol.toFixed(4)} SOL</b>`, {
-      parse_mode: 'HTML'
-    });
-  } catch (err) {
-    console.error(err);
-    bot.sendMessage(chatId, '❌ Errore durante il recupero del saldo.');
-  }
-});
-
-// === CALLBACK QUERY ===
+// === CALLBACK ===
 
 bot.on('callback_query', async (query) => {
   if (query.from.id !== OWNER_ID) return;
